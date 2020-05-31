@@ -1,0 +1,43 @@
+{
+  "name": "cerealkiller/error-logger-laravel-sdk",
+  "description": "Laravel SDK for ErrorLogger",
+  "type": "library",
+  "require": {
+    "php": "^7.3",
+    "orchestra/testbench": "^5.2",
+    "guzzlehttp/guzzle": "^6.5",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "codedungeon/phpunit-result-printer": "^0.27.0"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "CerealKiller97",
+      "email": "bogdanovicstefan1997@gmail.com"
+    }
+  ],
+  "scripts": {
+    "test": "vendor/bin/phpunit",
+    "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+  },
+  "minimum-stability": "stable",
+  "extra": {
+    "laravel": {
+      "providers": [
+        "ErrorLogger\\ErrorLoggerServiceProvider"
+      ]
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "ErrorLogger\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "ErrorLogger\\Tests\\": "tests"
+    }
+  }
+}
