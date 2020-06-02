@@ -7,8 +7,10 @@ namespace ErrorLogger;
 use ErrorLogger\Commands\TestCommand;
 use ErrorLogger\Http\Client;
 use ErrorLogger\Logger\ErrorLoggerBugHandler;
-use Illuminate\Foundation\{AliasLoader, Application};
+use Illuminate\Foundation\Application;
+use Illuminate\Config\Repository;
 use Illuminate\Log\LogManager;
+use Illuminate\Support\Facades\{Blade, Route};
 use Illuminate\Support\ServiceProvider;
 use Monolog\Logger;
 
@@ -31,16 +33,19 @@ class ErrorLoggerServiceProvider extends ServiceProvider
             ]);
         }
 
-        // Register facade
-        if (class_exists(AliasLoader::class)) {
-            $loader = AliasLoader::getInstance();
-            $loader->alias('LaraBug', 'LaraBug\Facade');
-        }
+        // Register views
+        $this->app['view']->addNamespace('errorlogger', __DIR__ . '/../resources/views');
 
         // Register commands
         $this->commands([
             TestCommand::class
         ]);
+
+        // Map JS error report route
+        $this->mapErrorLoggerApiRoute();
+
+        // Create an alias to the errorlogger-js-client.blade.php include
+        Blade::include('errorlogger::errorlogger-js-client', 'errorloggerJavaScriptClient');
     }
 
     /**
@@ -50,18 +55,28 @@ class ErrorLoggerServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/errorlogger.php', 'errorlogger');
 
-        $this->app->singleton('errorlogger', function ($app) {
+        $this->app->singleton('errorlogger', function (Application $app) {
             return new ErrorLogger(new Client(
                 config('errorlogger.api_key', 'api_key')
             ));
         });
 
         if ($this->app['log'] instanceof LogManager) {
-            $this->app['log']->extend('errorlogger', function (Application $app, $config) {
+            $this->app['log']->extend('errorlogger', function (Application $app, Repository $config) {
                 $handler = new ErrorLoggerBugHandler($app['errorlogger']);
 
                 return new Logger('errorlogger', [$handler]);
             });
         }
+    }
+
+    /**
+     * @return void
+     */
+    private function mapErrorLoggerApiRoute(): void
+    {
+        Route::namespace('\ErrorLogger\Http\Controllers')
+            ->prefix('errorlogger-api')
+            ->group(__DIR__ . '/../routes/api.php');
     }
 }

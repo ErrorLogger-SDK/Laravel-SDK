@@ -1,12 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ErrorLogger\Tests\Mocks;
 
 use ErrorLogger\Http\Client;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Assert;
 
-class LaraBugClient extends Client
+/**
+ * Class ErrorLoggerClient
+ *
+ * @package ErrorLogger\Tests\Mocks
+ */
+class ErrorLoggerClient extends Client
 {
     const RESPONSE_ID = 'test';
 
@@ -18,7 +25,7 @@ class LaraBugClient extends Client
      *
      * @return Response
      */
-    public function report($exception)
+    public function report(array $exception)
     {
         $this->requests[] = $exception;
 

@@ -1,10 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ErrorLogger\Tests;
 
 use Illuminate\Foundation\Application;
 use ErrorLogger\ErrorLoggerServiceProvider;
 
+/**
+ * Class TestCase
+ *
+ * @package ErrorLogger\Tests
+ */
 class TestCase extends \Orchestra\Testbench\TestCase
 {
     /**

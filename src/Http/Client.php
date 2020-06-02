@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ErrorLogger\Http;
 
 use Exception;
@@ -11,8 +13,10 @@ use Psr\Http\Message\ResponseInterface;
 
 class Client
 {
-    /** @var ClientInterface|null */
-    protected $client;
+    /**
+     * @var ClientInterface|null
+     */
+    private $client;
 
     /**
      * @var string
@@ -38,9 +42,10 @@ class Client
      * @param array $exception
      *
      * @return PromiseInterface|ResponseInterface|null
+     *
      * @throws GuzzleException
      */
-    public function report($exception)
+    public function report(array $exception)
     {
         try {
             return $this->client->request('POST', $this->endpoint, [
@@ -59,7 +64,7 @@ class Client
     /**
      * @return \GuzzleHttp\Client
      */
-    public function getGuzzleHttpClient()
+    public function getGuzzleHttpClient(): \GuzzleHttp\Client
     {
         if (!isset($this->client)) {
             $this->client = new \GuzzleHttp\Client([

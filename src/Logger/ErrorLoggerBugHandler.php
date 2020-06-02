@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ErrorLogger\Logger;
 
 use ErrorLogger\ErrorLogger;
@@ -10,15 +12,17 @@ use Throwable;
 
 class ErrorLoggerBugHandler extends AbstractProcessingHandler
 {
-    /** @var ErrorLogger */
-    protected $errorLogger;
+    /**
+     * @var ErrorLogger
+     */
+    private $errorLogger;
 
     /**
      * @param ErrorLogger $errorLogger
      * @param int $level
      * @param bool $bubble
      */
-    public function __construct(ErrorLogger $errorLogger, $level = Logger::ERROR, bool $bubble = true)
+    public function __construct(ErrorLogger $errorLogger, int $level = Logger::ERROR, bool $bubble = true)
     {
         $this->errorLogger = $errorLogger;
 

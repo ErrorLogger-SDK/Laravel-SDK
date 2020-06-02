@@ -2,12 +2,14 @@
 
 namespace ErrorLogger;
 
-use Illuminate\Config\Repository as Config;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{App, Cache, Request, Session};
 use Illuminate\Support\Str;
 use ErrorLogger\Http\Client;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
@@ -44,7 +46,8 @@ class ErrorLogger
      * @param array $customData
      *
      * @return bool|mixed
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     *
+     * @throws GuzzleException
      */
     public function handle(Throwable $exception, string $fileType = 'php', array $customData = [])
     {
@@ -233,8 +236,10 @@ class ErrorLogger
                     unset($variables[$key]);
                 }
             });
+
             return $variables;
         }
+
         return [];
     }
 
@@ -264,18 +269,20 @@ class ErrorLogger
 
     /**
      * @param string $exceptionClass
+     *
      * @return bool
      */
-    public function isSkipException(string $exceptionClass)
+    public function isSkipException(string $exceptionClass): bool
     {
         return in_array($exceptionClass, config('errorlogger.except'));
     }
 
     /**
      * @param array $data
+     *
      * @return bool
      */
-    public function isSleepingException(array $data)
+    public function isSleepingException(array $data): bool
     {
         if (config('errorlogger.sleep', 0) === 0) {
             return false;
@@ -285,10 +292,13 @@ class ErrorLogger
     }
 
     /**
+     *
+     *
      * @param array $data
+     *
      * @return string
      */
-    private function createExceptionString(array $data)
+    private function createExceptionString(array $data): string
     {
         return 'errorlogger.' . Str::slug($data['host'] . '_' . $data['method'] . '_' . $data['exception'] . '_' . $data['line'] . '_' . $data['file'] . '_' . $data['class']);
     }
@@ -296,8 +306,9 @@ class ErrorLogger
     /**
      * @param array $exception
      *
-     * @return \GuzzleHttp\Promise\PromiseInterface|\Psr\Http\Message\ResponseInterface|null
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return PromiseInterface|ResponseInterface|null
+     *
+     * @throws GuzzleException
      */
     private function logError(array $exception)
     {

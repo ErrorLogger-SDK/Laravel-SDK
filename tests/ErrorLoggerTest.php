@@ -1,37 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ErrorLogger\Tests;
 
 use Carbon\Carbon;
 use ErrorLogger\ErrorLogger;
+use ErrorLogger\Tests\Mocks\ErrorLoggerClient;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
-use ErrorLogger\Tests\Mocks\LaraBugClient;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class LaraBugTest extends TestCase
+/**
+ * Class ErrorLoggerTest
+ *
+ * @package ErrorLogger\Tests
+ */
+class ErrorLoggerTest extends TestCase
 {
-    /** @var LaraBug */
-    protected $larabug;
+    /**
+     * @var ErrorLogger
+     */
+    protected $errorLogger;
 
-    /** @var Mocks\LaraBugClient */
+    /**
+     * @var ErrorLoggerClient
+     */
     protected $client;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->larabug = new ErrorLogger($this->client = new LaraBugClient(
+        $this->errorLogger = new ErrorLogger($this->client = new ErrorLoggerClient(
             'api_key'
         ));
     }
 
-    /** @test */
+    /**
+     * @test
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function is_will_not_crash_if_errorlogger_returns_error_bad_response_exception()
     {
-        $this->larabug = new ErrorLogger($this->client = new \ErrorLogger\Http\Client(
+        $this->errorLogger = new ErrorLogger($this->client = new \ErrorLogger\Http\Client(
             'login_key'
         ));
 
@@ -44,13 +59,17 @@ class LaraBugTest extends TestCase
             ]),
         ]));
 
-        $this->assertInstanceOf(get_class(new \stdClass()), $this->larabug->handle(new Exception('is_will_not_crash_if_errorlogger_returns_error_bad_response_exception')));
+        $this->assertInstanceOf(get_class(new \stdClass()), $this->errorLogger->handle(new Exception('is_will_not_crash_if_errorlogger_returns_error_bad_response_exception')));
     }
 
-    /** @test */
+    /**
+     * @test
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function is_will_not_crash_if_errorlogger_returns_normal_exception()
     {
-        $this->larabug = new ErrorLogger($this->client = new \ErrorLogger\Http\Client(
+        $this->errorLogger = new ErrorLogger($this->client = new \ErrorLogger\Http\Client(
             'api_key'
         ));
 
@@ -63,7 +82,7 @@ class LaraBugTest extends TestCase
             ]),
         ]));
 
-        $this->assertFalse($this->larabug->handle(new Exception('is_will_not_crash_if_errorlogger_returns_normal_exception')));
+        $this->assertFalse($this->errorLogger->handle(new Exception('is_will_not_crash_if_errorlogger_returns_normal_exception')));
     }
 
     /** @test */
@@ -71,13 +90,13 @@ class LaraBugTest extends TestCase
     {
         $this->app['config']['errorlogger.except'] = [];
 
-        $this->assertFalse($this->larabug->isSkipException(NotFoundHttpException::class));
+        $this->assertFalse($this->errorLogger->isSkipException(NotFoundHttpException::class));
 
         $this->app['config']['errorlogger.except'] = [
             NotFoundHttpException::class
         ];
 
-        $this->assertTrue($this->larabug->isSkipException(NotFoundHttpException::class));
+        $this->assertTrue($this->errorLogger->isSkipException(NotFoundHttpException::class));
     }
 
     /** @test */
@@ -85,15 +104,15 @@ class LaraBugTest extends TestCase
     {
         $this->app['config']['errorlogger.environments'] = [];
 
-        $this->assertTrue($this->larabug->isSkipEnvironment());
+        $this->assertTrue($this->errorLogger->isSkipEnvironment());
 
         $this->app['config']['errorlogger.environments'] = ['production'];
 
-        $this->assertTrue($this->larabug->isSkipEnvironment());
+        $this->assertTrue($this->errorLogger->isSkipEnvironment());
 
         $this->app['config']['errorlogger.environments'] = ['testing'];
 
-        $this->assertFalse($this->larabug->isSkipEnvironment());
+        $this->assertFalse($this->errorLogger->isSkipEnvironment());
     }
 
     /** @test */
@@ -101,7 +120,7 @@ class LaraBugTest extends TestCase
     {
         $this->app['config']['errorlogger.sleep'] = 0;
 
-        $this->assertFalse($this->larabug->isSleepingException([]));
+        $this->assertFalse($this->errorLogger->isSleepingException([]));
     }
 
     /** @test */
@@ -111,27 +130,27 @@ class LaraBugTest extends TestCase
 
         Carbon::setTestNow('2019-10-12 13:30:00');
 
-        $this->assertFalse($this->larabug->isSleepingException($data));
+        $this->assertFalse($this->errorLogger->isSleepingException($data));
 
         Carbon::setTestNow('2019-10-12 13:30:00');
 
-        $this->larabug->addExceptionToSleep($data);
+        $this->errorLogger->addExceptionToSleep($data);
 
-        $this->assertTrue($this->larabug->isSleepingException($data));
+        $this->assertTrue($this->errorLogger->isSleepingException($data));
 
         Carbon::setTestNow('2019-10-12 13:31:00');
 
-        $this->assertTrue($this->larabug->isSleepingException($data));
+        $this->assertTrue($this->errorLogger->isSleepingException($data));
 
         Carbon::setTestNow('2019-10-12 13:31:01');
 
-        $this->assertFalse($this->larabug->isSleepingException($data));
+        $this->assertFalse($this->errorLogger->isSleepingException($data));
     }
 
     /** @test */
     public function it_can_get_formatted_exception_data()
     {
-        $data = $this->larabug->getExceptionData(new Exception(
+        $data = $this->errorLogger->getExceptionData(new Exception(
             'it_can_get_formatted_exception_data'
         ));
 
@@ -163,19 +182,23 @@ class LaraBugTest extends TestCase
             'Password' => 'testing'
         ];
 
-        $this->assertArrayNotHasKey('password', $this->larabug->filterVariables($data));
-        $this->assertArrayHasKey('not_password', $this->larabug->filterVariables($data));
-        $this->assertArrayNotHasKey('password', $this->larabug->filterVariables($data)['not_password2']);
-        $this->assertArrayNotHasKey('password', $this->larabug->filterVariables($data)['not_password_3']['nah']);
-        $this->assertArrayNotHasKey('Password', $this->larabug->filterVariables($data));
+        $this->assertArrayNotHasKey('password', $this->errorLogger->filterVariables($data));
+        $this->assertArrayHasKey('not_password', $this->errorLogger->filterVariables($data));
+        $this->assertArrayNotHasKey('password', $this->errorLogger->filterVariables($data)['not_password2']);
+        $this->assertArrayNotHasKey('password', $this->errorLogger->filterVariables($data)['not_password_3']['nah']);
+        $this->assertArrayNotHasKey('Password', $this->errorLogger->filterVariables($data));
     }
 
-    /** @test */
+    /**
+     * @test
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function it_can_report_an_exception_to_errorlogger()
     {
         $this->app['config']['errorlogger.environments'] = ['testing'];
 
-        $this->larabug->handle(new Exception('it_can_report_an_exception_to_errorlogger'));
+        $this->errorLogger->handle(new Exception('it_can_report_an_exception_to_errorlogger'));
 
         $this->client->assertRequestsSent(1);
     }

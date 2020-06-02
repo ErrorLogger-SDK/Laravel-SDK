@@ -1,10 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ErrorLogger\Tests;
 
 use ErrorLogger\ErrorLogger;
-use ErrorLogger\Tests\Mocks\LaraBugClient;
+use ErrorLogger\Tests\Mocks\ErrorLoggerClient;
 
+/**
+ * Class TestCommandTest
+ *
+ * @package ErrorLogger\Tests
+ */
 class TestCommandTest extends TestCase
 {
     /** @test */
@@ -41,7 +48,7 @@ class TestCommandTest extends TestCase
     }
 
     /** @test */
-    public function it_detects_that_it_fails_to_send_to_larabug()
+    public function it_detects_that_it_fails_to_send_to_errorlogger()
     {
         $this->artisan('errorlogger:test')
             ->expectsOutput('✗ [ErrorLogger] Failed to send exception to ErrorLogger')
@@ -50,14 +57,14 @@ class TestCommandTest extends TestCase
         $this->app['config']['errorlogger.environments'] = [
             'testing'
         ];
-        $this->app['errorlogger'] = new ErrorLogger($this->client = new LaraBugClient(
+        $this->app['errorlogger'] = new ErrorLogger($this->client = new ErrorLoggerClient(
             'api_key'
         ));
 
         $this->artisan('errorlogger:test')
-            ->expectsOutput('✓ [ErrorLogger] Sent exception to ErrorLogger with ID: ' . LaraBugClient::RESPONSE_ID)
+            ->expectsOutput('✓ [ErrorLogger] Sent exception to ErrorLogger with ID: ' . ErrorLoggerClient::RESPONSE_ID)
             ->assertExitCode(0);
 
-        $this->assertEquals(LaraBugClient::RESPONSE_ID, $this->app['errorlogger']->getLastExceptionId());
+        $this->assertEquals(ErrorLoggerClient::RESPONSE_ID, $this->app['errorlogger']->getLastExceptionId());
     }
 }
