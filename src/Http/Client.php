@@ -26,7 +26,7 @@ class Client
     /**
      * @var string
      */
-    private $endpoint = 'http://localhost:8000/api/log';
+    private $endpoint = 'http://localhost:8000/api/log'; // https://errorlogger.xyz/api/log
 
     /**
      * @var string

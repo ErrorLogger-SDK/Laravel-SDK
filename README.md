@@ -56,14 +56,14 @@ After that you have configured the ErrorLogger channel you can add it to the sta
 
 Now test to see if it works, you can do this in two ways.
 
-### Option 1:
+##### Option 1:
  -  Run this in your terminal:
  
 ```shell script
 php artisan errorlogger:test
 ```
 
-Option 2:
+##### Option 2:
 
 - Run this code in your application to see if the exception is received by ErrorLogger.
 
@@ -73,6 +73,24 @@ throw new \Exception('Testing my application!');
 
 ### And you are good to go! Happy coding :)
 
+## Versioning
+ErrorLogger-Laravel-SDK is versioned under the Semantic Versioning guidelines as much as possible.
+
+Releases will be numbered with the following format:
+```
+<major>.<minor>.<patch>
+```
+And constructed with the following guidelines:
+
+-   Breaking backward compatibility bumps the major and resets the minor and patch.
+
+-   New additions without breaking backward compatibility bumps the minor and resets the patch.
+
+-   Bug fixes and misc changes bumps the patch.
+
+-   Minor versions are not maintained individually, and you're encouraged to upgrade through to the next minor version.
+
+Major versions are maintained individually through separate branches.
 
 ## License
-The ErrorLogger-Laravel-SDK package is open source software licensed under the [ Apache License 2.0]
+The ErrorLogger-Laravel-SDK package is open source software licensed under the [ Apache License 2.0](https://github.com/CerealKiller97/ErrorLogger-Laravel-SDK/blob/master/LICENSE)
