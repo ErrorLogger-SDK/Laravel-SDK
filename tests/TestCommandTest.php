@@ -50,10 +50,6 @@ class TestCommandTest extends TestCase
     /** @test */
     public function it_detects_that_it_fails_to_send_to_errorlogger()
     {
-        $this->artisan('errorlogger:test')
-            ->expectsOutput('✗ [ErrorLogger] Failed to send exception to ErrorLogger')
-            ->assertExitCode(0);
-
         $this->app['config']['errorlogger.environments'] = [
             'testing'
         ];

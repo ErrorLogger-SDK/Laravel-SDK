@@ -7,9 +7,8 @@ namespace ErrorLogger\Http\Controllers;
 use ErrorException;
 use ErrorLogger\ErrorLogger;
 use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 /**
  * Class LaraBugReportController
@@ -21,32 +20,32 @@ class ErrorLoggerReportController
     /**
      * @var string
      */
-    private const JAVASCRIPT ='javascript';
+    private const JAVASCRIPT = 'javascript';
 
     /**
      * @param Request $request
      *
-     * @return Response|ResponseFactory
+     * @return JsonResponse
      *
      * @throws GuzzleException
      */
-    public function report(Request $request)
+    public function report(Request $request): JsonResponse
     {
         /** @var ErrorLogger $errorLogger */
         $errorLogger = app('errorlogger');
 
         $errorLogger->handle(
-            new ErrorException($request->post('message')),
+            new ErrorException($request->input('message')),
             self::JAVASCRIPT,
             [
-                'file' => $request->post('file'),
-                'line' => $request->post('line'),
-                'message' => $request->post('message'),
-                'stack' => $request->post('stack'),
-                'url' => $request->post('url'),
+                'file' => $request->input('file'),
+                'line' => $request->input('line'),
+                'message' => $request->input('message'),
+                'stack' => $request->input('stack'),
+                'url' => $request->input('url'),
             ]
         );
 
-        return response('ok', 200);
+        return response()->json(['message' => 'ok']);
     }
 }

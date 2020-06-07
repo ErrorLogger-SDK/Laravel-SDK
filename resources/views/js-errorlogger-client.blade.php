@@ -1,13 +1,7 @@
 <script defer>
-
-  export class ErrorLoggerClient {
+  class ErrorLoggerClient {
     /**
      * Initialize ErrorLoggerClient instance.
-     *
-     * @typedef {Object} ErrorLoggerClientOptions
-     * @property {string} dsn
-     * @property {string} platform
-     * @property {'production' | 'development'} environment
      */
     constructor () {
       if (typeof window !== 'undefined') {
@@ -27,15 +21,14 @@
     report (event) {
       return new Promise(async (resolve, reject) => {
         try {
-          const response = await fetch(`${window.location}/errorlogger-api/api/report`, {
+          const response = await fetch(`${window.location}errorlogger-api/report`, {
             body: JSON.stringify(this.mapError(event)),
+            method: 'POST',
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json'
             }
           });
-
-          resolve(response);
         } catch (err) {
           reject({
             status: err.status,
@@ -53,7 +46,7 @@
      * @returns {Exception}
      */
     mapError (event) {
-      const sdkVersion = '0.8.0';
+      const sdkVersion = '0.8.2';
 
       const stack = event.error.stack.toString();
       let exception = event.error.toString();

@@ -12,7 +12,7 @@ return [
     |
     */
 
-    'api_key' => env('ERRORLOGGER_API_KEY', 'API_KEY'),
+    'api_key' => env('ERRORLOGGER_API_KEY', 'API-KEY-HERE'),
 
     /*
     |--------------------------------------------------------------------------
@@ -20,12 +20,12 @@ return [
     |--------------------------------------------------------------------------
     |
     | This setting determines if the exception should be send over or not.
-    | Supported: Local & Production
+    | Supported: local, production
     |
     */
 
     'environments' => [
-        'production'
+        'local'
     ],
 
     /*

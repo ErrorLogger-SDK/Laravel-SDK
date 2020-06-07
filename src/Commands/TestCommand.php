@@ -43,30 +43,41 @@ class TestCommand extends Command
         $this->config = $config;
     }
 
-    public function handle()
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     *
+     * @return void
+     */
+    public function handle(): void
     {
         try {
-            /** @var ErrorLogger $larabug */
+            /** @var ErrorLogger $errorlogger */
             $errorlogger = app('errorlogger');
 
             if ($this->config->get('errorlogger.api_key')) {
                 $this->info('✓ [ErrorLogger] Found API key');
             } else {
                 $this->error('✗ [ErrorLogger] Could not find your API key, set this in your .env');
+                return;
             }
 
             if (in_array($this->config->get('app.env'), $this->config->get('errorlogger.environments'))) {
                 $this->info('✓ [ErrorLogger] Correct environment found');
             } else {
                 $this->error('✗ [ErrorLogger] Environment not allowed to send errors to ErrorLogger, set this in your config');
+                return;
             }
 
             $response = $errorlogger->handle($this->generateException());
 
+            if (isset($response->message)) {
+                $this->error('✗ [ErrorLogger] Failed to send exception to ErrorLogger. Reason: ' . $response->message);
+                $this->warn('[ErrorLogger] Hint: Check your .env file.');
+                return;
+            }
+
             if (isset($response->id)) {
                 $this->info('✓ [ErrorLogger] Sent exception to ErrorLogger with ID: ' . $response->id);
-            } elseif (is_null($response)) {
-                $this->info('✓ [ErrorLogger] Sent exception to ErrorLogger!');
             } else {
                 $this->error('✗ [ErrorLogger] Failed to send exception to ErrorLogger');
             }

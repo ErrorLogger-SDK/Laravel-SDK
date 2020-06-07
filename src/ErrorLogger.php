@@ -2,13 +2,13 @@
 
 namespace ErrorLogger;
 
+use ErrorLogger\Http\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{App, Cache, Request, Session};
 use Illuminate\Support\Str;
-use ErrorLogger\Http\Client;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
@@ -19,13 +19,34 @@ use Throwable;
  */
 class ErrorLogger
 {
-    /** @var Client */
+    /**
+     * @var string
+     */
+    private const BACKEND = 'backend';
+
+    /**
+     * @var string
+     */
+    private const FRONTEND = 'frontend';
+
+    /**
+     * @var string
+     */
+    private const  SDK_VERSION = '0.8.2';
+
+    /**
+     * @var Client
+     */
     private $client;
 
-    /** @var array */
+    /**
+     * @var string[]
+     */
     private $blacklist = [];
 
-    /** @var null|string */
+    /**
+     * @var string
+     */
     private $lastExceptionId;
 
     /**
@@ -68,7 +89,7 @@ class ErrorLogger
         if ($fileType === 'javascript') {
             $data['fullUrl'] = $customData['url'];
             $data['file'] = $customData['file'];
-            $data['file_type'] = $fileType;
+            $data['file_type'] = self::FRONTEND;
             $data['error'] = $customData['message'];
             $data['exception'] = $customData['stack'];
             $data['line'] = $customData['line'];
@@ -104,6 +125,7 @@ class ErrorLogger
 
         $rawResponse = $this->logError($data);
 
+
         if (!$rawResponse) {
             return false;
         }
@@ -137,27 +159,6 @@ class ErrorLogger
         return true;
     }
 
-
-    /**
-     * @param string|null $id
-     *
-     * @return void
-     */
-    private function setLastExceptionId(?string $id = null): void
-    {
-        $this->lastExceptionId = $id;
-    }
-
-    /**
-     * Get the last exception id given to us by the ErrorLogger API
-     *
-     * @return string|null
-     */
-    public function getLastExceptionId(): ?string
-    {
-        return $this->lastExceptionId;
-    }
-
     /**
      * @param Throwable $exception
      *
@@ -176,7 +177,9 @@ class ErrorLogger
         $data['line'] = $exception->getLine();
         $data['file'] = $exception->getFile();
         $data['class'] = get_class($exception);
-        $data['release'] = config('errorlogger.release', null);
+        $data['file_type'] = self::BACKEND;
+        $data['ip'] = Request::ip();
+        $data['sdk_version'] = self::SDK_VERSION;
         $data['storage'] = [
             'SERVER' => [
                 'USER' => Request::server('USER'),
@@ -223,6 +226,7 @@ class ErrorLogger
 
     /**
      * @param $variables
+     *
      * @return array
      */
     public function filterVariables($variables)
@@ -336,6 +340,16 @@ class ErrorLogger
     }
 
     /**
+     * @param string|null $id
+     *
+     * @return void
+     */
+    private function setLastExceptionId(?string $id = null): void
+    {
+        $this->lastExceptionId = $id;
+    }
+
+    /**
      * @param array $data
      *
      * @return bool
@@ -345,5 +359,15 @@ class ErrorLogger
         $exceptionString = $this->createExceptionString($data);
 
         return Cache::put($exceptionString, $exceptionString, config('errorlogger.sleep'));
+    }
+
+    /**
+     * Get the last exception id given to us by the ErrorLogger API
+     *
+     * @return string|null
+     */
+    public function getLastExceptionId(): ?string
+    {
+        return $this->lastExceptionId;
     }
 }

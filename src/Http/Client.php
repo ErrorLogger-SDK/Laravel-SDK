@@ -11,6 +11,11 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Class Client
+ *
+ * @package ErrorLogger\Http
+ */
 class Client
 {
     /**
@@ -48,7 +53,7 @@ class Client
     public function report(array $exception)
     {
         try {
-            return $this->client->request('POST', $this->endpoint, [
+            return $this->getGuzzleHttpClient()->request('POST', $this->endpoint, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->api_key
                 ],
@@ -67,9 +72,7 @@ class Client
     public function getGuzzleHttpClient(): \GuzzleHttp\Client
     {
         if (!isset($this->client)) {
-            $this->client = new \GuzzleHttp\Client([
-                'timeout' => 15
-            ]);
+            $this->client = new \GuzzleHttp\Client();
         }
 
         return $this->client;
