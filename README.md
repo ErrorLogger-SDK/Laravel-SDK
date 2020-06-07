@@ -5,7 +5,9 @@
 
 Laravel 7.x package for logging errors to [error-logger.netlify.app](https://error-logger.netlify.app)
 
-# TODO Bagdes
+[![Latest Stable Version](https://poser.pugx.org/cerealkiller/error-logger-laravel-sdk/v)](//packagist.org/packages/cerealkiller/error-logger-laravel-sdk)
+[![Total Downloads](https://poser.pugx.org/cerealkiller/error-logger-laravel-sdk/downloads)](//packagist.org/packages/cerealkiller/error-logger-laravel-sdk)
+[![License](https://poser.pugx.org/cerealkiller/error-logger-laravel-sdk/license)](//packagist.org/packages/cerealkiller/error-logger-laravel-sdk)
 
 ## Installation 
 You can install the package through Composer.
