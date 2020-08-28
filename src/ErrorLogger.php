@@ -32,7 +32,12 @@ class ErrorLogger
     /**
      * @var string
      */
-    private const  SDK_VERSION = '0.8.2';
+    private const  SDK_VERSION = '0.9.5';
+
+    private const LANGUAGES = [
+        'php' => 'php',
+        'javascript' => 'javascript'
+    ];
 
     /**
      * @var Client
@@ -86,7 +91,7 @@ class ErrorLogger
             return false;
         }
 
-        if ($fileType === 'javascript') {
+        if ($fileType === self::LANGUAGES['javascript']) {
             $data['fullUrl'] = $customData['url'];
             $data['file'] = $customData['file'];
             $data['file_type'] = self::FRONTEND;
@@ -97,34 +102,20 @@ class ErrorLogger
 
             $count = config('errorlogger.lines_count');
 
-            if ($count > 50) {
+            if ($count > 20) {
                 $count = 10;
             }
 
-            $lines = file($data['file']);
-            $data['executor'] = [];
+            $content = file_get_contents($data['file']);
 
+            $metaData = $this->getSourceCodeFromFile($content, $count, $data['line']);
 
-            for ($i = -1 * abs($count); $i <= abs($count); $i++) {
-                $currentLine = $data['line'] + $i;
-
-                $index = $currentLine - 1;
-
-                if (!array_key_exists($index, $lines)) {
-                    continue;
-                }
-
-                $data['executor'][] = [
-                    'line_number' => $currentLine,
-                    'line' => $lines[$index]
-                ];
-            }
-
-            $data['executor'] = array_filter($data['executor']);
+            $data['source_code'] = $metaData['source_code'];
+            $data['newExceptionLine'] = $metaData['source_code_exception_line'];
+            $data['language'] = self::LANGUAGES['javascript'];
         }
 
         $rawResponse = $this->logError($data);
-
 
         if (!$rawResponse) {
             return false;
@@ -160,6 +151,8 @@ class ErrorLogger
     }
 
     /**
+     * Get exception data.
+     *
      * @param Throwable $exception
      *
      * @return array
@@ -201,17 +194,17 @@ class ErrorLogger
 
         $count = config('errorlogger.lines_count');
 
-        if ($count > 50) {
+        if ($count > 20) {
             $count = 10;
         }
 
-        $lines = file($data['file']);
-        $data['executor'] = [];
+        $content = file_get_contents($data['file']);
 
-        for ($i = -1 * abs($count); $i <= abs($count); $i++) {
-            $data['executor'][] = $this->getLineInfo($lines, $data['line'], $i);
-        }
-        $data['executor'] = array_filter($data['executor']);
+        $metaData = $this->getSourceCodeFromFile($content, $count, $exception->getLine());
+
+        $data['source_code'] = $metaData['source_code'];
+        $data['newExceptionLine'] = $metaData['source_code_exception_line'];
+        $data['language'] = self::LANGUAGES['php'];
 
         // to make symfony exception more readable
         if ($data['class'] == 'Symfony\Component\Debug\Exception\FatalErrorException') {
@@ -225,6 +218,8 @@ class ErrorLogger
     }
 
     /**
+     * Remove blacklisted variables.
+     *
      * @param $variables
      *
      * @return array
@@ -248,30 +243,8 @@ class ErrorLogger
     }
 
     /**
-     * Gets information from the line
+     * Determinate should skip exception.
      *
-     * @param $lines
-     * @param $line
-     * @param $i
-     *
-     * @return array|void
-     */
-    private function getLineInfo(array $lines, int $line, int $i)
-    {
-        $currentLine = $line + $i;
-
-        $index = $currentLine - 1;
-
-        if (!array_key_exists($index, $lines)) {
-            return;
-        }
-        return [
-            'line_number' => $currentLine,
-            'line' => $lines[$index]
-        ];
-    }
-
-    /**
      * @param string $exceptionClass
      *
      * @return bool
@@ -323,6 +296,8 @@ class ErrorLogger
     }
 
     /**
+     * Get authenticated user if exists, otherwise return null.
+     *
      * @return array|null
      */
     public function getUser(): ?array
@@ -369,5 +344,50 @@ class ErrorLogger
     public function getLastExceptionId(): ?string
     {
         return $this->lastExceptionId;
+    }
+
+    /**
+     * Extract visible part of a code from a file.
+     *
+     * @param string $content
+     * @param int $count
+     * @param int $exceptionLine
+     *
+     * @return array
+     */
+    private function getSourceCodeFromFile(string $content, int $count, int $exceptionLine): array
+    {
+        $exception_line = $exceptionLine - 1;
+        $display = $count;
+
+        $line_above_and_below = ceil($display / 2);
+
+        $start_index = $exception_line - $line_above_and_below;
+        $end_index = $exception_line + $line_above_and_below;
+
+        $final_string = '';
+
+        $arrayCode = preg_split("/\r\n|\n|\r/", $content);
+
+        if ($start_index <= 0) {
+            $start_index = 0;
+        }
+
+        if ($end_index >= count($arrayCode) - 1) {
+            $end_index = count($arrayCode) - 1;
+        }
+
+        for ($i = $start_index; $i < $end_index; $i++) {
+            $final_string .= $arrayCode[$i] . PHP_EOL;
+        }
+
+        $final_string_arr = explode(PHP_EOL, $final_string);
+
+        $newExceptionLine = array_search($arrayCode[$exception_line], $final_string_arr);
+
+        return [
+            'source_code' => $final_string,
+            'source_code_exception_line' => $newExceptionLine
+        ];
     }
 }
