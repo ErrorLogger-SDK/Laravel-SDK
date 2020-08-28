@@ -54,6 +54,14 @@ After that you have configured the ErrorLogger channel you can add it to the sta
 ],
 ```
 
+## Frontend
+To catch frontend errors, add this include blade directive on top of the file where you want to log errors.
+```php
+@include('errorlogger::js-errorlogger-client')
+```
+
+## Testing
+
 Now test to see if it works, you can do this in two ways.
 
 ##### Option 1:
