@@ -46,7 +46,7 @@
      * @returns {Exception}
      */
     mapError (event) {
-      const sdkVersion = '0.9.5';
+      const sdkVersion = '1.0.2';
 
       const stack = event.error.stack.toString();
       let exception = event.error.toString();

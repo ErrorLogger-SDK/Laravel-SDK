@@ -32,7 +32,7 @@ class ErrorLogger
     /**
      * @var string
      */
-    private const  SDK_VERSION = '0.9.5';
+    private const  SDK_VERSION = '1.0.2';
 
     private const LANGUAGES = [
         'php' => 'php',
